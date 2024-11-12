@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTS IoT 152022099</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(to bottom right, #74ebd5, #9face6);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #4d4d4d;
+        margin: 10px 0;
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-top: 20px;
+      }
+
+      h2 {
+        font-size: 1.5em;
+      }
+
+      h3 {
+        font-size: 1.2em;
+      }
+
+      form {
+        background: #e0e5ec;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 9px 9px 16px #bec3c9, -9px -9px 16px #ffffff;
+        margin-bottom: 20px;
+        width: 80%;
+        max-width: 500px;
+      }
+
+      form label {
+        font-weight: bold;
+        color: #333;
+        margin-top: 10px;
+        display: block;
+      }
+
+      form input {
+        width: 100%;
+        margin: 10px 0;
+        background: #e0e5ec;
+        border: none;
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: inset 3px 3px 5px #bec3c9, inset -3px -3px 5px #ffffff;
+      }
+
+      form button {
+        background-color: #1976d2;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        width: 100%;
+        box-shadow: 3px 3px 6px #bec3c9, -3px -3px 6px #ffffff;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      form button:hover {
+        background-color: #1565c0;
+        transform: translateY(-3px);
+        box-shadow: 3px 3px 12px #bec3c9, -3px -3px 12px #ffffff;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 90%;
+        max-width: 1000px;
+        margin-top: 20px;
+        background: #e0e5ec;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 9px 9px 16px #bec3c9, -9px -9px 16px #ffffff;
+      }
+
+      table th {
+        background-color: #1976d2;
+        color: white;
+        padding: 10px;
+        font-size: 1em;
+      }
+
+      table td {
+        text-align: center;
+        padding: 10px;
+        font-size: 0.9em;
+        color: #333;
+      }
+
+      table tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      #get-data {
+        background-color: #1976d2;
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 20px;
+        box-shadow: 3px 3px 6px #bec3c9, -3px -3px 6px #ffffff;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      #get-data:hover {
+        background-color: #1565c0;
+        transform: translateY(-3px);
+        box-shadow: 3px 3px 12px #bec3c9, -3px -3px 12px #ffffff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Monitoring Data IoT</h1>
+    <h2>UTS Pemrograman IoT</h2>
+    <h3>Nama: Muhammad Nalendra Zaradiva</h3>
+    <h3>NIM: 152022112</h3>
+    <form id="form">
+      <label for="suhu">Suhu:</label>
+      <input id="suhu" type="range" name="suhu" min="0" max="100" />
+      <label for="kelembaban">Kelembapan:</label>
+      <input id="kelembaban" type="range" name="kelembaban" min="0" max="100" />
+      <label for="kecerahan">Kecerahan:</label>
+      <input id="kecerahan" type="range" name="kecerahan" min="0" max="100" />
+      <button type="submit">KIRIM!</button>
+    </form>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>IDX</th>
+          <th>Suhu</th>
+          <th>Kelembaban</th>
+          <th>Kecerahan</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="table-content"></tbody>
+    </table>
+    <button id="get-data" type="button">GET DATA</button>
+    <script>
+      document.querySelector("#form").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+
+        const data = {
+          suhu: form.suhu.value,
+          kelembaban: form.kelembaban.value,
+          kecerahan: form.kecerahan.value,
+        };
+
+        fetch("/api/post", {
+          method: "post",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then(() => alert("Data berhasil dikirim!"))
+          .catch(() => alert("Gagal mengirim data."));
+      });
+
+      const table = document.querySelector("#table-content");
+
+      document.querySelector("#get-data").addEventListener("click", () => {
+        fetch("/api/get")
+          .then((res) => res.json())
+          .then((json) => {
+            const database = json["nilai_suhu_max_humid_max"];
+
+            if (!database) return alert("Data tidak terbaca!");
+
+            table.innerHTML = "";
+
+            for (const data of database) {
+              const row = document.createElement("tr");
+              const idxCol = document.createElement("td");
+              const tempCol = document.createElement("td");
+              const humdCol = document.createElement("td");
+              const lighCol = document.createElement("td");
+              const timeCol = document.createElement("td");
+
+              idxCol.textContent = data["idx"];
+              tempCol.textContent = data["suhu"];
+              humdCol.textContent = data["humid"];
+              lighCol.textContent = data["kecerahan"];
+              timeCol.textContent = data["timestamp"];
+
+              row.append(idxCol, tempCol, humdCol, lighCol, timeCol);
+              table.append(row);
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
